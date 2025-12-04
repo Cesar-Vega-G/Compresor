@@ -6,7 +6,6 @@ using Compresor.Core;
 
 namespace Compresor.Algoritmos
 {
-    // Nodo del árbol de Huffman
     internal class NodoHuffman
     {
         public char? Simbolo { get; set; }
@@ -28,20 +27,11 @@ namespace Compresor.Algoritmos
             if (string.IsNullOrEmpty(textoOriginal))
                 return Array.Empty<byte>();
 
-            // 1. Contar frecuencias
             Dictionary<char, int> frecuencias = ContarFrecuencias(textoOriginal);
-
-            // 2. Construir árbol
             NodoHuffman raiz = ConstruirArbol(frecuencias);
-
-            // 3. Crear tabla de códigos (char -> string de bits)
             Dictionary<char, string> tablaCodigos = new Dictionary<char, string>();
             ConstruirTablaCodigos(raiz, "", tablaCodigos);
-
-            // 4. Codificar texto a cadena de bits
             string bits = CodificarTexto(textoOriginal, tablaCodigos);
-
-            // 5. Empaquetar: [tabla frecuencias] + [cantidad de bits] + [bytes de datos]
             return Empaquetar(frecuencias, bits);
         }
 
@@ -52,20 +42,11 @@ namespace Compresor.Algoritmos
             if (datosComprimidos == null || datosComprimidos.Length == 0)
                 return string.Empty;
 
-            // 1. Leer tabla de frecuencias + bits
             Dictionary<char, int> frecuencias;
             string bits = Desempaquetar(datosComprimidos, out frecuencias);
-
-            // 2. Reconstruir árbol
             NodoHuffman raiz = ConstruirArbol(frecuencias);
-
-            // 3. Recorrer bits sobre el árbol
             return DecodificarBits(bits, raiz);
         }
-
-        // =========================
-        // FUNCIONES AUXILIARES
-        // =========================
 
         private Dictionary<char, int> ContarFrecuencias(string texto)
         {
@@ -92,10 +73,8 @@ namespace Compresor.Algoritmos
                 });
             }
 
-            // Combinar nodos hasta que quede uno
             while (cola.Count > 1)
             {
-                // Ordenar por frecuencia
                 cola = cola.OrderBy(n => n.Frecuencia).ToList();
 
                 var primero = cola[0];
@@ -142,19 +121,15 @@ namespace Compresor.Algoritmos
             return sb.ToString();
         }
 
-        // Empaquetar: |N| [char, int frecuencia]*N |int cantidadBits| [bytes de bits]
         private byte[] Empaquetar(Dictionary<char, int> frecuencias, string bits)
         {
             List<byte> salida = new List<byte>();
 
-            // N = cantidad de símbolos distintos
             int N = frecuencias.Count;
             salida.AddRange(BitConverter.GetBytes(N));
 
-            // Por cada símbolo: char (2 bytes) + int frecuencia (4 bytes)
             foreach (var par in frecuencias)
             {
-                // char -> 2 bytes Unicode
                 byte[] charBytes = BitConverter.GetBytes(par.Key);
                 salida.AddRange(charBytes);
 
@@ -162,11 +137,9 @@ namespace Compresor.Algoritmos
                 salida.AddRange(freqBytes);
             }
 
-            // Cantidad de bits que vamos a leer
             int cantidadBits = bits.Length;
             salida.AddRange(BitConverter.GetBytes(cantidadBits));
 
-            // Convertir la cadena de bits a bytes
             List<byte> datos = BitsABytes(bits);
             salida.AddRange(datos);
 
@@ -178,11 +151,9 @@ namespace Compresor.Algoritmos
             frecuencias = new Dictionary<char, int>();
             int offset = 0;
 
-            // Leer N
             int N = BitConverter.ToInt32(datos, offset);
             offset += 4;
 
-            // Leer N veces (char + frecuencia)
             for (int i = 0; i < N; i++)
             {
                 char c = BitConverter.ToChar(datos, offset);
@@ -194,7 +165,6 @@ namespace Compresor.Algoritmos
                 frecuencias[c] = freq;
             }
 
-            // Leer cantidad de bits
             int cantidadBits = BitConverter.ToInt32(datos, offset);
             offset += 4;
 
@@ -218,7 +188,6 @@ namespace Compresor.Algoritmos
                 {
                     if (bits[i + j] == '1')
                     {
-                        // bit más significativo primero
                         b |= (byte)(1 << (7 - j));
                     }
                 }
@@ -270,5 +239,6 @@ namespace Compresor.Algoritmos
         }
     }
 }
+
 
 

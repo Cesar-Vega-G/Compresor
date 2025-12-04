@@ -10,7 +10,6 @@ namespace Compresor
 {
     public partial class Form1 : Form
     {
-        // lista con todos los archivos seleccionados para comprimir
         private List<string> _archivosSeleccionados = new List<string>();
 
         public Form1()
@@ -19,9 +18,6 @@ namespace Compresor
             CargarAlgoritmos();
         }
 
-        // ================================================
-        // CARGAR ALGORITMOS EN EL COMBO
-        // ================================================
         private void CargarAlgoritmos()
         {
             comboAlgoritmo.Items.Clear();
@@ -31,9 +27,6 @@ namespace Compresor
             comboAlgoritmo.SelectedIndex = 0;
         }
 
-        // ================================================
-        // DEVOLVER OBJETO COMPRESOR SEGÚN COMBO
-        // ================================================
         private ICompressor ObtenerCompresorSeleccionado()
         {
             string nombre = comboAlgoritmo.SelectedItem.ToString();
@@ -47,9 +40,6 @@ namespace Compresor
             }
         }
 
-        // ================================================
-        // DEVOLVER ID DE ALGORITMO PARA .MYZIP
-        // ================================================
         private byte ObtenerIdAlgoritmo()
         {
             string nombre = comboAlgoritmo.SelectedItem.ToString();
@@ -63,7 +53,6 @@ namespace Compresor
             }
         }
 
-        // ID -> objeto compresor (para descomprimir)
         private ICompressor ObtenerCompresorPorId(byte id)
         {
             switch (id)
@@ -75,10 +64,6 @@ namespace Compresor
             }
         }
 
-        // ================================================
-        // BOTÓN BUSCAR ARCHIVO  (archBuscar)
-        // AHORA PERMITE SELECCIONAR VARIOS .TXT
-        // ================================================
         private void archBuscar_Click(object sender, EventArgs e)
         {
             using (OpenFileDialog selector = new OpenFileDialog())
@@ -96,17 +81,12 @@ namespace Compresor
                     }
                     else
                     {
-                        // solo para que se vea algo en el TextBox
-                        ArchivoSeleccionado.Text =
-                            $"{_archivosSeleccionados.Count} archivos seleccionados";
+                        ArchivoSeleccionado.Text = $"{_archivosSeleccionados.Count} archivos seleccionados";
                     }
                 }
             }
         }
 
-        // ================================================
-        // EJECUTAR COMPRESIÓN CON ESTADÍSTICAS
-        // ================================================
         private byte[] EjecutarCompresionConEstadisticas(
             ICompressor compresor,
             string texto,
@@ -132,9 +112,6 @@ namespace Compresor
             return resultado;
         }
 
-        // ================================================
-        // EJECUTAR DESCOMPRESIÓN CON ESTADÍSTICAS
-        // ================================================
         private string EjecutarDescompresionConEstadisticas(
             ICompressor compresor,
             byte[] datos,
@@ -157,9 +134,6 @@ namespace Compresor
             return resultado;
         }
 
-        // ================================================
-        // MOSTRAR ESTADÍSTICAS EN LABELS
-        // ================================================
         private void MostrarEstadisticas(EstadisticasCompresor est)
         {
             Tiempo.Text = $"Tiempo: {est.TiempoTranscurrido.TotalMilliseconds:F2} ms";
@@ -167,11 +141,6 @@ namespace Compresor
             Tasa.Text = $"Tasa: {est.RadioDeCompresion:F2}:1";
         }
 
-        // ================================================
-        // BOTÓN COMPRIMIR  (Compresor)
-        // AHORA COMPRIME TODOS LOS .TXT SELECCIONADOS
-        // EN UN SOLO .MYZIP
-        // ================================================
         private void Compresor_Click_1(object sender, EventArgs e)
         {
             if (_archivosSeleccionados == null || _archivosSeleccionados.Count == 0)
@@ -183,7 +152,6 @@ namespace Compresor
             ICompressor compresor = ObtenerCompresorSeleccionado();
             byte idAlg = ObtenerIdAlgoritmo();
 
-            // Creamos el zip vacío
             MiZipFile zip = MiZipFile.CrearVacio(idAlg);
 
             long totalOriginal = 0;
@@ -214,7 +182,6 @@ namespace Compresor
                     maxMemoria = estArchivo.MemoriaUsada;
             }
 
-            // Pedimos al usuario dónde guardar el .myzip
             string salida;
             using (SaveFileDialog dlg = new SaveFileDialog())
             {
@@ -229,7 +196,6 @@ namespace Compresor
 
             zip.GuardarEnRuta(salida);
 
-            // Estadísticas globales
             var estGlobal = new EstadisticasCompresor
             {
                 TiempoTranscurrido = tiempoTotal,
@@ -243,10 +209,6 @@ namespace Compresor
             MessageBox.Show("Archivos comprimidos en: " + salida);
         }
 
-        // ================================================
-        // BOTÓN DESCOMPRIMIR  (Descompresor)
-        // DESCOMPRIME TODAS LAS ENTRADAS DEL .MYZIP
-        // ================================================
         private void Descompresor_Click_1(object sender, EventArgs e)
         {
             using (OpenFileDialog selector = new OpenFileDialog())
@@ -256,7 +218,6 @@ namespace Compresor
                 if (selector.ShowDialog() != DialogResult.OK)
                     return;
 
-                // Cargar todas las entradas del zip
                 MiZipFile zip = MiZipFile.CargarDesdeArchivo(selector.FileName);
 
                 ICompressor compresor = ObtenerCompresorPorId(zip.IdAlgoritmo);
@@ -289,7 +250,7 @@ namespace Compresor
                 {
                     TiempoTranscurrido = tiempoTotal,
                     MemoriaUsada = maxMemoria,
-                    RadioDeCompresion = 0 // en descompresión no aplica
+                    RadioDeCompresion = 0
                 };
 
                 MostrarEstadisticas(estGlobal);
@@ -297,7 +258,6 @@ namespace Compresor
             }
         }
 
-        // HANDLERS VACÍOS QUE PIDE EL DISEÑADOR
         private void label1_Click(object sender, EventArgs e) { }
         private void label2_Click(object sender, EventArgs e) { }
         private void label3_Click(object sender, EventArgs e) { }
